@@ -1,0 +1,74 @@
+catalogue = ['accessori', 'borse', 'scarpe', 'abbigliamento']
+catalogue = pd.Series(catalogue)
+
+#catalogue = catalogue.str.lower()
+
+fmt = 'https://www.twinset.com/it-it/{page}'
+
+
+main_df = []
+
+for cat in (catalogue):
+    page_url = fmt.format(page=cat)
+    print('page: {}'.format(cat))
+    res = requests.get(page_url)
+    soup = bs4.BeautifulSoup(res.text,'html5lib')
+    print(page_url)
+    
+    
+    name = []
+    
+    res = requests.get(page_url)
+    soup = bs4.BeautifulSoup(res.text,'html5lib')
+    
+    soup.select('.sub-category-link') 
+    
+    for i in soup.select('.sub-category-link'):
+        name.append(i.text)
+           
+        
+    name = pd.Series(name)
+    name = name.str.lower()
+    price = []
+    good = []
+    level_2 = []
+    
+    
+    for n in (name):
+        name = name.str.replace(' ','-')
+    print(name)
+        
+    for lev_2 in (name):
+        final_url = page_url + '/' + lev_2
+        res = requests.get(final_url)
+        soup = bs4.BeautifulSoup(res.text,'html5lib')
+        print(final_url)
+
+
+        for page_n in range(1,22):
+            page_n = str(page_n)
+            mega_url = final_url + '/?page='+ page_n
+            print('page: {}'.format(page_n))
+            res = requests.get(mega_url)
+            soup = bs4.BeautifulSoup(res.text,'html5lib')
+            print(mega_url)
+            soup.select('.sales.value') 
+            
+            
+            for i in soup.select('.sales.value'):
+                price.append(i.text) 
+                level_2.append(lev_2)
+                
+            soup.select('.link') 
+    
+            for i in soup.select('.link'): 
+                good.append(i.text)
+                
+          
+    price= pd.Series(price)
+    good= pd.Series(good)
+    sub_catalogue = pd.Series(level_2)
+    list_of_series = [sub_catalogue, good, price]
+    df = pd.concat(list_of_series, axis=1)
+    df.columns = ['sub_catalogue','product_name', 'price']           
+    main_df.append(df)  
